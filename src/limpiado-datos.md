@@ -1,11 +1,10 @@
 ---
-title: Example report
+title: Limpiado de Datos
 ---
 
-# A brief history of space exploration
+# Cómo limpiamos los datos
 
-This report is a brief overview of the history and current state of rocket launches and space exploration.
-
+Que cosas revisamos? Que miramos? Que cuenta hicimos?
 ## Background
 
 The history of rocket launches dates back to ancient China, where gunpowder-filled tubes were used as primitive forms of propulsion.
