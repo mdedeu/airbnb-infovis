@@ -7,32 +7,36 @@ toc: false
 
 Aquí puedes explorar estadísticas generales de Airbnb en Capital Federal. Utiliza los filtros para profundizar en diferentes aspectos de los alojamientos.
 ```js
-data = FileAttachment('data/listings.csv').csv();
+const data = await FileAttachment('./data/listings.csv').csv({typed: true});
 ```
 
 ## Filtros
 
 - **Multi-select de barrio**: Selecciona uno o varios barrios.
 ```js
-viewof selectedNeighborhoods = Inputs.select(
-  data.map(d => d.neighbourhood).filter(Boolean).sort(),
-  { label: "Select Neighborhoods", multiple: true }
-)
-```
-- **Room Type**: Filtra por tipos de habitación (entera, privada, compartida, hotel).
-```js
-viewof selectedRoomTypes = Inputs.select(
-  ["Entire home/apt", "Private room", "Shared room", "Hotel room"],
-  { label: "Room Type", multiple: true }
-)
+const neighborhoods = await FileAttachment('./data/neighborhoods.csv').csv({ typed: true })
+console.log(neighborhoods);
+let neighborhoodSelected = view(Inputs.select(
+  Array.from(new Set(neighborhoods.map(d => d.neighborhood).filter(Boolean))),
+  { label: "Selecciona un barrio" }
+))
 ```
 - **Checkbox**: Solo alojamientos de corto plazo (short-term rentals).
 ```js
-viewof shortTermOnly = Inputs.checkbox({ label: "Short-term Rentals Only" })
+// Checkbox for short-term rentals (e.g., minimum nights <= 30)
+view(Inputs.checkbox(
+  { label: "Solo alojamientos de corto plazo (short-term rentals)" }
+));
 ```
 - **Slider de Precio**: Ajusta el rango de precios para visualizar alojamientos dentro de tu presupuesto.
 ```js
-viewof priceRange = Inputs.range([0, 1000], { label: "Price Range", step: 10 })
+const minPrice = d3.min(data, d => +d.price);
+const maxPrice = d3.max(data, d => +d.price);
+
+view(Inputs.range([minPrice, maxPrice], {
+  label: "Rango de Precio",
+  step: 10
+}));
 ```
 
 ## Resumen de Datos
