@@ -12,7 +12,6 @@ const data = await FileAttachment('./data/listings.csv').csv({typed: true});
 
 ## Filtros
 
-- **Multi-select de barrio**: Selecciona uno o varios barrios.
 ```js
 const neighborhoods = await FileAttachment('./data/neighborhoods.csv').csv({ typed: true })
 console.log(neighborhoods);
@@ -21,14 +20,9 @@ let neighborhoodSelected = view(Inputs.select(
   { label: "Selecciona un barrio" }
 ))
 ```
-- **Checkbox**: Solo alojamientos de corto plazo (short-term rentals).
 ```js
-// Checkbox for short-term rentals (e.g., minimum nights <= 30)
-view(Inputs.checkbox(
-  { label: "Solo alojamientos de corto plazo (short-term rentals)" }
-));
+view(Inputs.checkbox(["Solo alojamientos de corto plazo (menos de 15 días)"]));
 ```
-- **Slider de Precio**: Ajusta el rango de precios para visualizar alojamientos dentro de tu presupuesto.
 ```js
 const minPrice = d3.min(data, d => +d.price);
 const maxPrice = d3.max(data, d => +d.price);
