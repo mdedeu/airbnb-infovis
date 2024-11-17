@@ -6,13 +6,34 @@ toc: false
 # Datos generales 🚀
 
 Aquí puedes explorar estadísticas generales de Airbnb en Capital Federal. Utiliza los filtros para profundizar en diferentes aspectos de los alojamientos.
+```js
+airbnbDataset = d3.csv("https://drive.google.com/uc?id=1n4bkmOPPcbMHurgz_cAb9yyeKbuL1Gju&export=download")
+```
 
 ## Filtros
 
 - **Multi-select de barrio**: Selecciona uno o varios barrios.
+```js
+viewof selectedNeighborhoods = Inputs.select(
+  data.map(d => d.neighbourhood).filter(Boolean).sort(),
+  { label: "Select Neighborhoods", multiple: true }
+)
+```
 - **Room Type**: Filtra por tipos de habitación (entera, privada, compartida, hotel).
+```js
+viewof selectedRoomTypes = Inputs.select(
+  ["Entire home/apt", "Private room", "Shared room", "Hotel room"],
+  { label: "Room Type", multiple: true }
+)
+```
 - **Checkbox**: Solo alojamientos de corto plazo (short-term rentals).
+```js
+viewof shortTermOnly = Inputs.checkbox({ label: "Short-term Rentals Only" })
+```
 - **Slider de Precio**: Ajusta el rango de precios para visualizar alojamientos dentro de tu presupuesto.
+```js
+viewof priceRange = Inputs.range([0, 1000], { label: "Price Range", step: 10 })
+```
 
 ## Resumen de Datos
 
