@@ -7,7 +7,7 @@ toc: false
 
 Aquí puedes explorar estadísticas generales de Airbnb en Capital Federal. Utiliza los filtros para profundizar en diferentes aspectos de los alojamientos.
 ```js
-airbnbDataset = d3.csv("https://drive.google.com/uc?id=1n4bkmOPPcbMHurgz_cAb9yyeKbuL1Gju&export=download")
+data = FileAttachment('data/listings.csv').csv();
 ```
 
 ## Filtros
