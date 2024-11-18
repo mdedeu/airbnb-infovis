@@ -12,12 +12,13 @@ const listings = csvParse(await text("https://drive.google.com/uc?id=1n4bkmOPPcb
   id: d.id,
   name: d.name,
   neighborhood: d.neighbourhood,
-  price: +d.price,
+  price: +d.price_usd,
   roomType: d.room_type,
   minimumNights: +d.minimum_nights,
   numberOfReviews: +d.number_of_reviews,
   lastReview: d.last_review,
-  reviewsPerMonth: +d.reviews_per_month
+  reviewsPerMonth: +d.reviews_per_month,
+  numberOfReviewsLTM: +d.number_of_reviews_ltm
 }));
 
 // Write out CSV formatted data (assumes Node.js environment)

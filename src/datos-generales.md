@@ -6,73 +6,127 @@ toc: false
 # Datos generales 🚀
 
 Aquí puedes explorar estadísticas generales de Airbnb en Capital Federal. Utiliza los filtros para profundizar en diferentes aspectos de los alojamientos.
-```js
-const data = await FileAttachment('./data/listings.csv').csv({typed: true});
-```
 
 ## Filtros
+```js
+let data = await FileAttachment('./data/listings.csv').csv({typed: true});
+
+```
 
 ```js
 const neighborhoods = await FileAttachment('./data/neighborhoods.csv').csv({ typed: true })
-console.log(neighborhoods);
-let neighborhoodSelected = view(Inputs.select(
-  Array.from(new Set(neighborhoods.map(d => d.neighborhood).filter(Boolean))),
+let neighborhoodSelected = view(Inputs.select(["Todos", ...Array.from(new Set(neighborhoods.map(d => d.neighborhood).filter(Boolean)))],
   { label: "Selecciona un barrio" }
 ))
 ```
 ```js
-view(Inputs.checkbox(["Solo alojamientos de corto plazo (menos de 15 días)"]));
+let short_stay = view(Inputs.checkbox(["Solo alojamientos de corto plazo (menos de 15 días)"]));
 ```
 ```js
-const minPrice = d3.min(data, d => +d.price);
-const maxPrice = d3.max(data, d => +d.price);
+let minSlider = d3.min(data, d => +d.price);
+let maxSlider = d3.max(data, d => +d.price);
+let minPrice = minSlider;
+let maxPrice = maxSlider;
 
-view(Inputs.range([minPrice, maxPrice], {
-  label: "Rango de Precio",
-  step: 10
-}));
+minPrice = view(Inputs.range([minSlider, maxSlider ], {step: 1, format: x => x.toFixed(0), label: "Precio mínimo", value: minSlider}));
+maxPrice = view(Inputs.range([minSlider, maxSlider ], {step: 1, format: x => x.toFixed(0), label: "Precio máximo", value: maxSlider}));
 ```
 
+```js
+let filteredData = data;
+if(short_stay && short_stay.length > 0){
+  filteredData = filteredData.filter(d => d.minimumNights <= 15 )
+}
+filteredData = filteredData.filter(d => d.price >= minPrice && d.price <= maxPrice)
+if(neighborhoodSelected != 'Todos'){
+  filteredData  = filteredData.filter(d => d.neighborhood == neighborhoodSelected)
+}
+const selectedNeighborhood = neighborhoodSelected == 'Todos' ? "Buenos Aires": neighborhoodSelected;
+```
 ## Resumen de Datos
 
 <div class="grid grid-cols-4 gap-4">
   <div class="card">
-    <h2>Buenos Aires 🇦🇷</h2>
-    <span class="big">Total de Listados: <b>20,000</b></span>
+    <h2>Total de listados en ${selectedNeighborhood} 🇦🇷</h2>
+    <span class="big"><b>${filteredData.length}
+</b></span>
   </div>
   <div class="card">
-    <h2>Ingresos Totales 💸</h2>
-    <span class="big">En los últimos X meses: <b>$3,000,000</b></span>
+    <h2>Dinero gastado en Airbnbs de ${selectedNeighborhood} 💸</h2>
+    <span class="big"><b>${d3.sum(filteredData, item => (item.price * item.numberOfReviews)).toLocaleString("en-US", {style: "currency", currency: "USD"})} USD</b></span>
   </div>
   <div class="card">
-    <h2>Health Index 📊</h2>
-    <span class="big">Tasa de Ocupación: <b>65%</b></span>
-  </div>
-  <div class="card">
-    <h2>Alojamientos Corto Plazo 📆</h2>
-    <span class="big">4,500</span>
+    <h2>Ocupación de Airbnbs del último año de ${selectedNeighborhood} 📊</h2>
+    <span class="big"><b>${(d3.mean(filteredData, d => d.reviewsPerMonth / 0.50 / 30) * 100).toFixed(2)} %</b></span>
   </div>
 </div>
 
-### Distribución de tipos de habitaciones
+```js 
+const geoNeighborhoods = await FileAttachment('./data/geo_neighborhoods.json').json()
+function plotDensityMap(geoNeighborhoods, data, title, domain) {
+  const width = 800;
+  const height = 610;
+  const projection = d3.geoMercator();
+  projection.fitExtent([[0, 0], [width, height]], geoNeighborhoods);
+ 
+  return Plot.plot({
+    title: title,
+    projection,
+    width,
+    height,
+    color: {
+      legend: true,
+      scheme: "reds",
+      domain: domain
+    },
+    marks: [
+      Plot.geo(geoNeighborhoods, {
+        stroke: "black",
+        strokeWidth: 1,
+        fill: d => data.get(d.properties.neighbourhood) || 0,
+        title: d => {
+          const stats = data.get(d.properties.neighbourhood);
+          const count = stats ? stats : 0;
+          return `Barrio: ${d.properties.neighbourhood}\nNúmero de propiedades: ${count}`;
+        },
+        tip: true
+      })
+    ]
+  });
+}
+```
 
-Gráfico de barras interactivo que muestra la distribución de tipos de habitación (entera, privada, compartida, hotel). Usa la biblioteca **Plot** para permitir la selección y visualización dinámica.
+```js
+ let neighborhoodCount = d3.rollup(filteredData, 
+    v => v.length,  
+    d => d.neighborhood
+  );
+  neighborhoodCount = new Map(
+    Array.from(neighborhoodCount.entries())
+        .map(([key, value]) => [key, Math.log(value + 1)]));
 
-### Mapa de Calor Interactivo de Capital Federal
+const minCount = d3.min(Array.from(neighborhoodCount.values()));
+const maxCount = d3.max(Array.from(neighborhoodCount.values()));
 
-Mapa interactivo de **Leaflet** que muestra la densidad de alojamientos por barrio, codificado por color según el número de listados. Permite el filtrado por barrio y rango de precio.
+```
 
-### Ocupación a través del tiempo
+```js
+plotDensityMap(geoNeighborhoods, neighborhoodCount, "Densidad por barrio (escala log)", [minCount, maxCount])
+```
+```js
+const neighborhoodOcuppancy = d3.rollup(data, 
+    v => {
+        const avgReviewsPerMonth = d3.mean(v, d => d.reviewsPerMonth);
+        return avgReviewsPerMonth ? ((avgReviewsPerMonth / 0.50 / 30) * 100).toFixed(2) : 0;
+    },
+    d => d.neighborhood
+);
+```
 
-Gráfico de área apilada que muestra la ocupación a lo largo del tiempo, segmentado por tipo de habitación. Añade una animación que ilustre la evolución mensual de la tasa de ocupación para destacar tendencias.
+```js
+plotDensityMap(geoNeighborhoods, neighborhoodOcuppancy, "Ocupación por barrio (%)", [0,14.20])
+```
 
-### Short-term Rentals
-
-Gráfico circular (pie chart) de **Plot** que muestra la proporción de alojamientos de corto plazo (short-term) frente a los de largo plazo. Los colores codifican las dos categorías para una fácil visualización.
-
-### Distribución de precios por tipo de habitación y barrio
-
-**Boxplot** que muestra la distribución de precios por tipo de habitación y barrio. Ayuda a identificar la mediana, cuartiles y valores atípicos, proporcionando un análisis detallado de la variabilidad de precios.
 
 ### Distribución de listings por Host
 
@@ -82,13 +136,9 @@ Histograma interactivo de **Plot** que muestra la cantidad de listings por host,
 
 **Treemap** que representa los ingresos totales por barrio. Los rectángulos están codificados por el tamaño proporcional a los ingresos generados, permitiendo identificar los barrios más rentables de un vistazo.
 
-### Relación Precio vs. Ocupación
+### Relación Precio vs.Ocupación
 
-Diagrama de dispersión de **Plot** que muestra la relación entre el precio por noche y la tasa de ocupación, con la opción de filtrar por tipo de habitación y barrio. Los puntos se codifican por color según el tipo de habitación.
-
-### Flujos de Hosts a Tipos de Propiedades
-
-Gráfico de **Sankey** que muestra la relación entre los hosts y los tipos de propiedades que poseen, revelando cómo se distribuyen sus listados y si se especializan en un solo tipo de alojamiento o en varios.
+Diagrama de dispersión de **Plot** que muestra la relación entre el precio por noche y la tasa de ocupación, con la opción de filtrar por barrio.
 
 ---
 
