@@ -114,7 +114,7 @@ const maxCount = d3.max(Array.from(neighborhoodCount.values()));
 plotDensityMap(geoNeighborhoods, neighborhoodCount, "Densidad por barrio (escala log)", [minCount, maxCount])
 ```
 ```js
-const neighborhoodOcuppancy = d3.rollup(data, 
+const neighborhoodOcuppancy = d3.rollup(filteredData, 
     v => {
         const avgReviewsPerMonth = d3.mean(v, d => d.reviewsPerMonth);
         return avgReviewsPerMonth ? ((avgReviewsPerMonth / 0.50 / 30) * 100).toFixed(2) : 0;

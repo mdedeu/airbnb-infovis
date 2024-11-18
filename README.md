@@ -1,5 +1,13 @@
 # Airbnb-data
 
+Grupo 3
+
+Marcos Dedeu
+Lucía Zapata
+Lucero Arleo
+
+DEMO: https://marcos-diego-dedeu.observablehq.cloud/airbnb-infovis/
+
 This is an [Observable Framework](https://observablehq.com/framework) app. To start the local preview server, run:
 
 ```
