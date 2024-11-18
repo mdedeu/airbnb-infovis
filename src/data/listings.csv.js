@@ -8,7 +8,7 @@ async function text(url) {
 }
 
 // Load and parse the CSV file
-const listings = csvParse(await text("https://drive.google.com/uc?id=1n4bkmOPPcbMHurgz_cAb9yyeKbuL1Gju&export=download"), (d) => ({
+const listings = csvParse(await text("https://drive.google.com/uc?id=1n4bkmOPPcbMHurgz_cAb9yyeKbuL1Gju&export=download"), (d) => ({  
   id: d.id,
   hostId: d.host_id,
   hostName: d.host_name,
@@ -20,8 +20,9 @@ const listings = csvParse(await text("https://drive.google.com/uc?id=1n4bkmOPPcb
   numberOfReviews: +d.number_of_reviews,
   lastReview: d.last_review,
   reviewsPerMonth: +d.reviews_per_month,
-  numberOfReviewsLTM: +d.number_of_reviews_ltm
+  numberOfReviewsLTM: +d.number_of_reviews_ltm,
+  latitude: d.latitude,
+  longitude: d.longitude
 }));
-
 // Write out CSV formatted data (assumes Node.js environment)
 process.stdout.write(csvFormat(listings));

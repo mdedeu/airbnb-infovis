@@ -10,7 +10,6 @@ Aquí puedes explorar estadísticas generales de Airbnb en Capital Federal. Util
 ## Filtros
 ```js
 let data = await FileAttachment('./data/listings.csv').csv({typed: true});
-
 ```
 
 ```js
@@ -76,7 +75,7 @@ function plotDensityMap(geoNeighborhoods, data, title, domain) {
     height,
     color: {
       legend: true,
-      scheme: "reds",
+      scheme: "ylorrd",
       domain: domain
     },
     marks: [
@@ -101,30 +100,190 @@ function plotDensityMap(geoNeighborhoods, data, title, domain) {
     v => v.length,  
     d => d.neighborhood
   );
-  neighborhoodCount = new Map(
-    Array.from(neighborhoodCount.entries())
-        .map(([key, value]) => [key, Math.log(value + 1)]));
-
-const minCount = d3.min(Array.from(neighborhoodCount.values()));
+let minCount = d3.min(Array.from(neighborhoodCount.values()));
 const maxCount = d3.max(Array.from(neighborhoodCount.values()));
+if(minCount == maxCount){
+  minCount = 0;
+}
+```
 
+# Mapa de precio
+```js
+// Import required deck.gl components
+import deck from "npm:deck.gl";
+
+const {DeckGL, AmbientLight, GeoJsonLayer, LightingEffect, PointLight, ColumnLayer} = deck;
+
+// Create main container for both map and legend
+const mainContainer = document.createElement('div');
+mainContainer.style.position = 'relative';
+
+// Create container div for the map
+const container = document.createElement('div');
+container.style.height = '600px';
+container.style.width = '100%';
+container.style.position = 'relative';
+container.style.borderRadius = '8px';
+container.style.overflow = 'hidden';
+
+// Create legend container
+const legendContainer = document.createElement('div');
+legendContainer.style.position = 'absolute';
+legendContainer.style.bottom = '500px';
+legendContainer.style.right = '20px';
+legendContainer.style.padding = '10px';
+legendContainer.style.borderRadius = '4px';
+legendContainer.style.zIndex = '1000';
+legendContainer.style.boxShadow = '0 2px 4px rgba(0,0,0,0.2)';
+
+// Create gradient bar
+const gradientBar = document.createElement('div');
+gradientBar.style.width = '200px';
+gradientBar.style.height = '20px';
+gradientBar.style.background = 'linear-gradient(to right, rgb(0, 255, 0), rgb(255, 255, 0), rgb(255, 0, 0))';
+gradientBar.style.marginBottom = '5px';
+gradientBar.style.borderRadius = '2px';
+
+// Create labels container
+const labelsContainer = document.createElement('div');
+labelsContainer.style.display = 'flex';
+labelsContainer.style.justifyContent = 'space-between';
+labelsContainer.style.fontSize = '12px';
+
+
+// Add labels
+labelsContainer.innerHTML = `
+  <span>$${minSlider.toLocaleString()}</span>
+  <span>$${Math.floor((minSlider + maxSlider) / 2).toLocaleString()}</span>
+  <span>$${maxSlider.toLocaleString()}</span>
+`;
+
+// Assemble legend
+legendContainer.appendChild(document.createElement('div')).textContent = 'Rango de precio';
+legendContainer.appendChild(gradientBar);
+legendContainer.appendChild(labelsContainer);
+
+// Create lighting effect for 3D visualization
+const effects = [
+  new LightingEffect({
+    ambientLight: new AmbientLight({
+      color: [255, 255, 255],
+      intensity: 1.0
+    }),
+    pointLight: new PointLight({
+      color: [255, 255, 255],
+      intensity: 2.0,
+      position: [-74.05, -34.61, 8000]
+    })
+  })
+];
+
+// Initial view state centered on Buenos Aires
+const initialViewState = {
+  longitude: -58.3816,
+  latitude: -34.6037,
+  zoom: 10,
+  pitch: 45,
+  bearing: 0
+};
+
+// Function to normalize price to a reasonable height
+const normalizeHeight = (price) => {
+  return ((price - minSlider) / (maxSlider - minSlider)) * 1000 + 100;
+};
+
+// Create the deck.gl instance
+const deckInstance = new DeckGL({
+  container,
+  initialViewState,
+  controller: true,
+  effects
+});
+
+// Clean up if code re-runs
+invalidation.then(() => {
+  deckInstance.finalize();
+  container.innerHTML = "";
+});
+
+// Set up the visualization layers
+deckInstance.setProps({
+  layers: [
+    // Base map layer with Buenos Aires GeoJSON
+    new GeoJsonLayer({
+      id: 'base-map',
+      data: geoNeighborhoods,
+      stroked: true,
+      filled: true,
+      lineWidthMinPixels: 1,
+      getLineColor: [255, 255, 255, 100],
+      getFillColor: [38, 38, 38]
+    }),
+    // Listings layer using ColumnLayer for 3D columns
+    new ColumnLayer({
+      id: 'listings',
+      data: filteredData,
+      diskResolution: 12,
+      radius: 25,
+      extruded: true,
+      pickable: true,
+      elevationScale: 1,
+      getPosition: d => [d.longitude, d.latitude],
+      getFillColor: d => {
+        const priceRatio = (d.price - minSlider) / (maxSlider - minSlider);
+        return [
+          255 * priceRatio,    // Red component
+          255 * (1 - priceRatio), // Green component
+          0                    // Blue component
+        ];
+      },
+      getLineColor: [0, 0, 0],
+      getElevation: d => normalizeHeight(d.price),
+      updateTriggers: {
+        getFillColor: [minSlider, maxSlider],
+        getElevation: [minSlider, maxSlider]
+      },
+    })
+  ]
+});
+
+// Assemble main container
+mainContainer.appendChild(container);
+mainContainer.appendChild(legendContainer);
 ```
 
 ```js
-plotDensityMap(geoNeighborhoods, neighborhoodCount, "Densidad por barrio (escala log)", [minCount, maxCount])
+mainContainer
+```
+
+```js
+plotDensityMap(geoNeighborhoods, neighborhoodCount, "Densidad de listings por barrio", [minCount, maxCount])
+```
+# Cálculo de ocupación estimada
+```js
+import tex from "npm:@observablehq/tex";
+```
+```tex
+\mathbf{\text{Estimación de bookings en los últimos 12 meses} = \frac{\text{<numberOfReviewsLTM>}}{0.55}}
+\\[12pt]
+\mathbf{\text{Tasa de Ocupación en los últimos 12 meses } = \frac{\text{numberOfBookings}}{365}}
 ```
 ```js
 const neighborhoodOcuppancy = d3.rollup(filteredData, 
     v => {
-        const avgReviewsPerMonth = d3.mean(v, d => d.reviewsPerMonth);
-        return avgReviewsPerMonth ? ((avgReviewsPerMonth / 0.50 / 30) * 100).toFixed(2) : 0;
+        if (v.length >= 2) {
+            const avgReviewsPerMonth = d3.mean(v, d => d.reviewsPerMonth);
+            return avgReviewsPerMonth ? ((avgReviewsPerMonth / 0.50 / 30) * 100).toFixed(2) : 0;
+        } else {
+            return 0; // Return null for groups with less than 2 elements
+        }
     },
     d => d.neighborhood
 );
 ```
 
 ```js
-plotDensityMap(geoNeighborhoods, neighborhoodOcuppancy, "Ocupación por barrio (%)", [0,14.20])
+plotDensityMap(geoNeighborhoods, neighborhoodOcuppancy, "Ocupación estimada media por barrio (%)", [0,14.20])
 ```
 
 ```js
@@ -144,7 +303,7 @@ function plotPriceVsOccupancy(data) {
     title: "Relación Precio vs. Ocupación",
     x: {
       label: "Precio por noche ($)",
-      domain: [0, d3.quantile(data, 0.98, d => d.price)]  // Removing outliers
+      domain: [0, d3.quantile(data, 0.98, d => d.price)]
     },
     y: {
       label: "Tasa de ocupación (%)",
@@ -178,6 +337,6 @@ plotPriceVsOccupancy(filteredData)
 ```
 
 
----
 
+---
 **Fuente de Datos:** Inside Airbnb.com [Inside Airbnb](https://insideairbnb.com/get-the-data/)
