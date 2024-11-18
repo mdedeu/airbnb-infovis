@@ -127,18 +127,56 @@ const neighborhoodOcuppancy = d3.rollup(filteredData,
 plotDensityMap(geoNeighborhoods, neighborhoodOcuppancy, "Ocupación por barrio (%)", [0,14.20])
 ```
 
+```js
+function plotPriceVsOccupancy(data) {
+  // Calculate occupancy rate for each point
+  const points = data.map(d => ({
+    price: d.price,
+    name: d.name,
+    occupancy: (d.reviewsPerMonth / 0.5 / 30) * 100,
+    neighborhood: d.neighborhood
+  }));
 
-### Distribución de listings por Host
+  return Plot.plot({
+    width: 800,
+    height: 500,
+    grid: true,
+    title: "Relación Precio vs. Ocupación",
+    x: {
+      label: "Precio por noche ($)",
+      domain: [0, d3.quantile(data, 0.98, d => d.price)]  // Removing outliers
+    },
+    y: {
+      label: "Tasa de ocupación (%)",
+      domain: [0, 90]
+    },
+    marks: [
+      Plot.dot(points, {
+        x: "price",
+        y: "occupancy",
+        fill: "neighborhood",
+        opacity: 0.5,
+        title: d => `${d.name}, ${d.neighborhood}\nPrecio: $${d.price}\nOcupación: ${d.occupancy.toFixed(1)}%`,
+        tip: true
+      }),
+      Plot.linearRegressionY(points, {
+        x: "price",
+        y: "occupancy",
+        stroke: "red",
+        strokeWidth: 2
+      }),
+    ],
+    color: {
+      legend: true
+    }
+  });
+}
+```
 
-Histograma interactivo de **Plot** que muestra la cantidad de listings por host, con la opción de resaltar hosts con múltiples propiedades. Este gráfico es ideal para identificar si hay un pequeño grupo de hosts que posee la mayoría de los listados.
+```js
+plotPriceVsOccupancy(filteredData)
+```
 
-### Ingresos por Barrio
-
-**Treemap** que representa los ingresos totales por barrio. Los rectángulos están codificados por el tamaño proporcional a los ingresos generados, permitiendo identificar los barrios más rentables de un vistazo.
-
-### Relación Precio vs.Ocupación
-
-Diagrama de dispersión de **Plot** que muestra la relación entre el precio por noche y la tasa de ocupación, con la opción de filtrar por barrio.
 
 ---
 

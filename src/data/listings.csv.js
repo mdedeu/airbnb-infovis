@@ -10,6 +10,8 @@ async function text(url) {
 // Load and parse the CSV file
 const listings = csvParse(await text("https://drive.google.com/uc?id=1n4bkmOPPcbMHurgz_cAb9yyeKbuL1Gju&export=download"), (d) => ({
   id: d.id,
+  hostId: d.host_id,
+  hostName: d.host_name,
   name: d.name,
   neighborhood: d.neighbourhood,
   price: +d.price_usd,
