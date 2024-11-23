@@ -16,6 +16,7 @@ let data = csvParse(await text("https://drive.google.com/uc?id=1v3lBLcq490S4gpco
     neighborhood: d.neighbourhood_cleansed,
     price: +d.price_usd,
     hostResponseRate: d.host_response_rate,
+    hostResponseTime: d.host_response_time,
     hostIsSuperhost: d.host_is_superhost === 't',  // Convert 't'/'f' to boolean
     minimumNights: +d.minimum_nights,
     numberOfReviews: +d.number_of_reviews,

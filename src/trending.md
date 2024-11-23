@@ -93,6 +93,7 @@ let topHosts = Array.from(hostRatings.entries())
     const avgValueRating = d3.mean(listings, d => d.valueRating);
     const avgCommunicationRating = d3.mean(listings, d => d.communicationRating);
     const avgLocationRating = d3.mean(listings, d => d.locationRating);
+    const avgResponseTime = d3.mean(listings, d => d.hostResponseTime);
 
     return { 
       hostId,
@@ -101,6 +102,7 @@ let topHosts = Array.from(hostRatings.entries())
       propertyCount,
       totalReviews,
       avgResponseRate,
+      avgResponseTime,
       isSuperHost,
       rating: {
         avgCleanlinessRating,
