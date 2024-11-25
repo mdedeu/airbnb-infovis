@@ -14,17 +14,14 @@ toc: false
 
 <div class="team-container">
   <div class="team-member">
-    <img src="https://via.placeholder.com/150" alt="Marcos Diego Dedeu">
     <h3>Marcos Diego Dedeu</h3>
     <p>Ingeniería en Informática</p>
   </div>
   <div class="team-member">
-    <img src="https://via.placeholder.com/150" alt="Lucía Zapata">
     <h3>Lucía Zapata</h3>
     <p>Licenciatura en Analítica</p>
   </div>
   <div class="team-member">
-    <img src="https://via.placeholder.com/150" alt="Lucero Arleo">
     <h3>Lucero Arleo</h3>
     <p>Licenciatura en Negocios</p>
   </div>
