@@ -64,7 +64,7 @@ let listingsByHost = d3.group(data, d => d.hostId)
 let hostRatings = d3.rollup(data, v => d3.mean(v, d => d.rating), d=> d.hostId)
 ```
 ```js
-let topHosts = Array.from(hostRatings.entries())
+const topHosts = Array.from(hostRatings.entries())
   .map(([hostId, avgRating]) => {
     let listings = listingsByHost.get(hostId);
     if(neighborhoodSelected != 'Todos'){
@@ -93,8 +93,7 @@ let topHosts = Array.from(hostRatings.entries())
     const avgValueRating = d3.mean(listings, d => d.valueRating);
     const avgCommunicationRating = d3.mean(listings, d => d.communicationRating);
     const avgLocationRating = d3.mean(listings, d => d.locationRating);
-    const avgResponseTime = d3.mean(listings, d => d.hostResponseTime);
-
+    const responseTime = listings[0].hostResponseTime;
     return { 
       hostId,
       avgRating,
@@ -102,7 +101,7 @@ let topHosts = Array.from(hostRatings.entries())
       propertyCount,
       totalReviews,
       avgResponseRate,
-      avgResponseTime,
+      responseTime,
       isSuperHost,
       rating: {
         avgCleanlinessRating,
@@ -115,7 +114,6 @@ let topHosts = Array.from(hostRatings.entries())
     };
   }).filter(d => d !== null)
   .sort((a, b) => b.avgRating - a.avgRating).slice(0,topHostsCount);
-console.log(topHosts)
 ```
 
 # Top Hosts ordenados por cantidad de propiedades
@@ -155,11 +153,62 @@ Plot.plot({
 
 # Response rate vs rating
 ```js
-
+Plot.plot({
+  marks: [
+    Plot.dot(topHosts, {
+      x: "avgResponseRate", // x-axis is avgResponseRate
+      y: "avgRating",       // y-axis is avgRating
+      title: (d) => `${d.hostName}\nProperties: ${d.propertyCount}\nAvg Rating: ${d.avgRating.toFixed(2)}\nResponse Rate: ${d.avgResponseRate.toFixed(2)}`
+    })
+  ],
+  x: {
+    label: "Average Response Rate (%)",
+    tickFormat: d => `${(d).toFixed(0)}%` // Format response rate as percentage
+  },
+  y: {
+    label: "Average Rating",
+    grid: true,
+    domain: [0, 5] // Assuming ratings are between 0 and 5
+  },
+  color: {
+    legend: true,
+    label: "Superhost Status"
+  },
+  
+  width: 800,
+  height: 600
+})
 ```
 
 # Response time vs rating
 ```js
+Plot.plot({
+  marks: [
+    Plot.dot(topHosts, {
+      x: "responseTime",  // x-axis is responseTime (categorical)
+      y: "avgRating",     // y-axis is avgRating
+      fill: "isSuperHost", // Optional color encoding for superhost status
+      title: (d) => `${d.hostName}
+Properties: ${d.propertyCount}
+Avg Rating: ${d.avgRating.toFixed(2)}
+Response Time: ${d.responseTime}`
+    })
+  ],
+  x: {
+    label: "Response Time",
+  },
+  y: {
+    label: "Average Rating",
+    grid: true,
+    domain: [0, 5] // Assuming ratings are between 0 and 5
+  },
+  color: {
+    legend: true,
+    label: "Superhost Status"
+  },
+  width: 800,
+  height: 600
+})
 ```
 
 # Ratings del mejor y el peor del top

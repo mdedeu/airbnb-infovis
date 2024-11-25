@@ -10,8 +10,6 @@ export default {
      {
       name: "Airbnb Data",
        pages: [
-        {name: "Análisis de Datos", path: "/analisis-datos"},
-         {name: "Limpiado de Datos", path: "/limpiado-datos"},
          {name: "Datos Generales", path: "/datos-generales"},
          {name: "Trending", path: "/trending"}
        ]
