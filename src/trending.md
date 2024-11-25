@@ -118,7 +118,7 @@ const topHosts = Array.from(hostRatings.entries())
 
 # Top Hosts ordenados por cantidad de propiedades
 ```js
-Plot.plot({
+topHosts && topHosts.length > 1  ? Plot.plot({
   marginTop: 20,
   marginRight: 20,
   marginBottom: 50,
@@ -148,12 +148,12 @@ Plot.plot({
     fontFamily: "sans-serif",
     fontSize: 12,
   },
-})
+}): "No data to show"
 ```
 
 # Response rate vs rating
 ```js
-Plot.plot({
+topHosts && topHosts.length > 1 ? Plot.plot({
   marks: [
     Plot.dot(topHosts, {
       x: "avgResponseRate", // x-axis is avgResponseRate
@@ -171,18 +171,16 @@ Plot.plot({
     domain: [0, 5] // Assuming ratings are between 0 and 5
   },
   color: {
-    legend: true,
-    label: "Superhost Status"
+    scheme: "blues"
   },
-  
   width: 800,
   height: 600
-})
+}) : "No data to show"
 ```
 
 # Response time vs rating
 ```js
-Plot.plot({
+topHosts && topHosts.length > 1  ? Plot.plot({
   marks: [
     Plot.dot(topHosts, {
       x: "responseTime",  // x-axis is responseTime (categorical)
@@ -203,12 +201,11 @@ Response Time: ${d.responseTime}`
     domain: [0, 5] // Assuming ratings are between 0 and 5
   },
   color: {
-    legend: true,
-    label: "Superhost Status"
+    scheme: "blues"
   },
   width: 800,
   height: 600
-})
+}): "No data to show"
 ```
 
 # Ratings del mejor y el peor del top
@@ -508,7 +505,7 @@ function RadarChart(data, options) {
 ```
 
 ```js
-preparedData ? RadarChart(preparedData, radarChartOptions): "No data to show"
+preparedData && preparedData.length > 1 ? RadarChart(preparedData, radarChartOptions): "No data to show"
 ```
   
 
